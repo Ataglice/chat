@@ -1,4 +1,4 @@
-from server.database import init_db
+from server.database import register_user, check_credentials
 import socket
 import threading
 from shared.config import HOST, PORT
@@ -19,5 +19,5 @@ def start_server():
         thread.start()
 
 if __name__ == "__main__":
-    init_db()      # Сначала инициализация базы
-    start_server() # Потом запуск сервера
+    # init_db()  # больше не вызывается
+    start_server()

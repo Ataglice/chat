@@ -15,8 +15,11 @@ def process_auth(client_socket):
         client_socket.send("Пароль: ".encode())
         password = client_socket.recv(1024).decode().strip()
 
+        client_socket.send("Телефон: ".encode())
+        phone = client_socket.recv(1024).decode().strip()
+
         if choice == "1":
-            if check_credentials(username, password):
+            if check_credentials(username, password, phone):
                 client_socket.send(f"[✓] Успешный вход, {username}!\n".encode())
                 return username
             else:
@@ -24,7 +27,7 @@ def process_auth(client_socket):
                 return None
 
         elif choice == "2":
-            if register_user(username, password):
+            if register_user(username, password, phone):
                 client_socket.send(f"[✓] Регистрация прошла успешно, {username}!\n".encode())
                 return username
             else:

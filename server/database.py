@@ -1,35 +1,38 @@
-import sqlite3
-import os
+import psycopg2
 
-DB_PATH = os.path.join("data", "chat.db")
+DB_NAME = "chat"
+DB_USER = "postgres"
+DB_PASSWORD = "Lart8527"
+DB_HOST = "localhost"
+DB_PORT = "5432"
 
 def get_connection():
-    return sqlite3.connect(DB_PATH)
+    return psycopg2.connect(
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT
+    )
 
-def init_db():
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        );
-        """)
-        conn.commit()
-
-def register_user(username, password):
+def register_user(username, password, phone):
     try:
         with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            return True
-    except sqlite3.IntegrityError:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO users (username, password, phone) VALUES (%s, %s, %s)",
+                    (username, password, phone)
+                )
+                conn.commit()
+                return True
+    except psycopg2.IntegrityError:
         return False
 
-def check_credentials(username, password):
+def check_credentials(username, password, phone):
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-        return cursor.fetchone() is not None
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM users WHERE username = %s AND password = %s AND phone = %s",
+                (username, password)
+            )
+            return cursor.fetchone() is not None
