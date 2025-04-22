@@ -33,6 +33,6 @@ def check_credentials(username, password, phone):
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT * FROM users WHERE username = %s AND password = %s AND phone = %s",
-                (username, password)
+                (username, password, phone)
             )
             return cursor.fetchone() is not None
