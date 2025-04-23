@@ -1,19 +1,17 @@
 import psycopg2
+from decouple import config
 
-DB_NAME = "chat"
-DB_USER = "postgres"
-DB_PASSWORD = "Lart8527"
-DB_HOST = "localhost"
-DB_PORT = "5432"
+
+DB_CONFIG = {
+    "dbname": config("DB_NAME"),
+    "user": config("DB_USER"),
+    "password": config("DB_PASSWORD"),
+    "host": config("DB_HOST"),
+    "port": config("DB_PORT")
+}
 
 def get_connection():
-    return psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
-    )
+    return psycopg2.connect(**DB_CONFIG)
 
 def register_user(username, password, phone):
     try:
@@ -28,11 +26,11 @@ def register_user(username, password, phone):
     except psycopg2.IntegrityError:
         return False
 
-def check_credentials(username, password, phone):
+def check_credentials(username, password):
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT * FROM users WHERE username = %s AND password = %s AND phone = %s",
-                (username, password, phone)
+                "SELECT * FROM users WHERE username = %s AND password = %s",
+                (username, password)
             )
             return cursor.fetchone() is not None

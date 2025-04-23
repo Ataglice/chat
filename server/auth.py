@@ -19,7 +19,7 @@ def process_auth(client_socket):
         phone = client_socket.recv(1024).decode().strip()
 
         if choice == "1":
-            if check_credentials(username, password, phone):
+            if check_credentials(username, password):
                 client_socket.send(f"[✓] Успешный вход, {username}!\n".encode())
                 return username
             else:
