@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: chat-api
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: uvicorn server.api:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: DB_NAME
+        value: chat_app_db_xxbx
+      - key: DB_USER
+        value: chat_user
+      - key: DB_PASSWORD
+        value: MBJ6aleZXaHMiAIKvgAIOl38apImW38s
+      - key: DB_HOST
+        value: dpg-d04e7nbuibrs73b0rfm0-a.oregon-postgres.render.com
+      - key: DB_PORT
+        value: 5432
