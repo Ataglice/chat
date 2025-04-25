@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from api_client import register_user, login_user
+from ui_chat_list import ChatListWindow
 
 class LoginWindow:
     def __init__(self, root):
@@ -31,7 +32,10 @@ class LoginWindow:
         response = login_user(username, password)
         if response.status_code == 200:
             messagebox.showinfo("Success", "Login successful!")
-            # Здесь можно открыть основное окно приложения
+            self.root.destroy()  # Закрываем окно логина
+            new_root = tk.Tk()
+            ChatListWindow(new_root)
+            new_root.mainloop()
         else:
             messagebox.showerror("Error", "Invalid credentials.")
 

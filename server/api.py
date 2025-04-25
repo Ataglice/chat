@@ -34,6 +34,10 @@ class MessageSend(BaseModel):
     sender: str
     content: str
 
+class ChatCreate(BaseModel):
+    user_id: int
+    chat_name: str
+
 # --- Эндпоинты ---
 @app.post("/register")
 def register(user: UserRegister):
@@ -65,6 +69,31 @@ def send_message(msg: MessageSend):
     # В будущем можно записывать сообщение в базу
     print(f"{msg.sender}: {msg.content}")
     return {"message": "Сообщение получено"}
+
+@app.get("/chats/{user_id}")
+def get_user_chats(user_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT chats.id, chats.name FROM chats
+                JOIN chat_users ON chats.id = chat_users.chat_id
+                WHERE chat_users.user_id = %s
+            """, (user_id,))
+            return cur.fetchall()
+
+@app.post("/chats")
+def create_chat(data: ChatCreate):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO chats (name) VALUES (%s) RETURNING id
+            """, (data.chat_name,))
+            chat_id = cur.fetchone()["id"]
+            cur.execute("""
+                INSERT INTO chat_users (chat_id, user_id) VALUES (%s, %s)
+            """, (chat_id, data.user_id))
+            conn.commit()
+    return {"message": "Чат создан", "chat_id": chat_id}
 
 if __name__ == "__main__":
     import uvicorn
