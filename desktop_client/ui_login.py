@@ -29,15 +29,13 @@ class LoginWindow:
         username = self.username_entry.get()
         password = self.password_entry.get()
 
-        response = login_user(username, password)
-        if response.status_code == 200:
-            messagebox.showinfo("Success", "Login successful!")
-            self.root.destroy()  # Закрываем окно логина
-            new_root = tk.Tk()
-            ChatListWindow(new_root)
-            new_root.mainloop()
+        result = login_user(username, password)
+        if result["status"] == "ok":
+            user_id = result["user_id"]
+            self.root.destroy()
+            ChatListWindow(user_id=user_id)
         else:
-            messagebox.showerror("Error", "Invalid credentials.")
+            messagebox.showerror("Ошибка", result["detail"])
 
     def register(self):
         username = self.username_entry.get()

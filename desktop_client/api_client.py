@@ -1,7 +1,7 @@
 import requests
 
-BASE_URL = "http://127.0.0.1:8000"
-#https://chat-0w96.onrender.com
+BASE_URL = "http://127.0.0.1:8000"  # или твой Render URL
+
 def register_user(username, password, phone):
     return requests.post(f"{BASE_URL}/register", json={
         "username": username,
@@ -10,7 +10,19 @@ def register_user(username, password, phone):
     })
 
 def login_user(username, password):
-    return requests.post(f"{BASE_URL}/login", json={
+    response = requests.post(f"{BASE_URL}/login", json={
         "username": username,
         "password": password
     })
+    if response.status_code == 200:
+        data = response.json()
+        return {
+            "status": "ok",
+            "user_id": data["user_id"],
+            "username": data["username"]
+        }
+    else:
+        return {
+            "status": "error",
+            "detail": response.json().get("detail")
+        }

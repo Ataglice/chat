@@ -57,12 +57,13 @@ def login(user: UserLogin):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT * FROM users WHERE username = %s AND password = %s
+                SELECT id, username FROM users WHERE username = %s AND password = %s
             """, (user.username, user.password))
             result = cur.fetchone()
             if not result:
                 raise HTTPException(status_code=401, detail="Неверные данные")
-    return {"message": "Успешный вход"}
+    return {"message": "Успешный вход", "user_id": result["id"], "username": result["username"]}
+
 
 @app.post("/message")
 def send_message(msg: MessageSend):
