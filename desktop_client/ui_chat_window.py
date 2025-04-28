@@ -44,22 +44,34 @@ class ChatWindow(tk.Toplevel):
             messagebox.showerror("Ошибка", f"Сервер недоступен\n{e}")
     '''
 
+    
     # ui_chat_window.py
     def load_messages(self):
         try:
             response = requests.get(f"{BASE_URL}/messages/{self.chat_id}")
+            
             if response.status_code == 200:
                 messages = response.json()
                 self.messages_text.config(state=tk.NORMAL)
                 self.messages_text.delete(1.0, tk.END)
+                
                 for msg in messages:
-                    # Изменено здесь: используем msg["sender"] вместо msg["sender_id"]
-                    self.messages_text.insert(tk.END, f'[{msg["timestamp"]}] {msg["sender"]}: {msg["content"]}\n')
+                    text = f'[{msg["timestamp"]}] {msg["sender"]}: {msg["content"]}\n'
+                    self.messages_text.insert(tk.END, text)
+                
                 self.messages_text.config(state=tk.DISABLED)
             else:
-                messagebox.showerror("Ошибка", "Не удалось загрузить сообщения")
-        except Exception as e:
-            messagebox.showerror("Ошибка", f"Сервер недоступен\n{e}")
+                error_detail = response.text[:100]  # Первые 100 символов ошибки
+                messagebox.showerror(
+                    "Ошибка",
+                    f"Ошибка {response.status_code}: {error_detail}"
+                )
+                
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror(
+                "Ошибка соединения",
+                f"Не удалось подключиться к серверу: {str(e)}"
+            )
 
     def send_message(self, event=None):
         content = self.entry.get()

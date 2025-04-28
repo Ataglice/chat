@@ -46,7 +46,7 @@ class MessageCreate(BaseModel):
 class MessageRead(BaseModel):
     id: int
     chat_id: int
-    sender: str  # Меняем sender_id на sender
+    sender: str  
     content: str
     timestamp: str
 """
@@ -108,21 +108,32 @@ def create_message(message: MessageCreate):
 
 @app.get("/messages/{chat_id}")
 def get_messages(chat_id: int):
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT 
-                    m.id, 
-                    m.chat_id, 
-                    u.username as sender,  # Используем правильный алиас
-                    m.content, 
-                    m.timestamp 
-                FROM messages m
-                JOIN users u ON m.sender_id = u.id
-                WHERE m.chat_id = %s 
-                ORDER BY m.timestamp ASC
-            """, (chat_id,))
-            return cur.fetchall()
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT 
+                        m.id,
+                        m.chat_id,
+                        COALESCE(u.username, 'Unknown') as sender,
+                        m.content,
+                        TO_CHAR(m.timestamp, 'YYYY-MM-DD HH24:MI:SS') as timestamp
+                    FROM messages m
+                    LEFT JOIN users u ON m.sender_id = u.id
+                    WHERE m.chat_id = %s
+                    ORDER BY m.timestamp ASC
+                """, (chat_id,))
+                return cur.fetchall()
+    except psycopg2.Error as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error: {str(e)}"
+        )
 
 
 '''
