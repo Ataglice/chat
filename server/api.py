@@ -42,13 +42,21 @@ class MessageCreate(BaseModel):
     chat_id: int
     sender_id: int
     content: str
-
+    
+class MessageRead(BaseModel):
+    id: int
+    chat_id: int
+    sender: str  # Меняем sender_id на sender
+    content: str
+    timestamp: str
+"""
 class MessageRead(BaseModel):
     id: int
     chat_id: int
     sender_id: int
     content: str
     timestamp: str
+"""
 
 class AddUserByIdentifier(BaseModel):
     identifier: str  # username или phone
@@ -82,11 +90,7 @@ def login(user: UserLogin):
     return {"message": "Успешный вход", "user_id": result["id"], "username": result["username"]}
 
 
-@app.post("/message")
-def send_message(msg: MessageSend):
-    # В будущем можно записывать сообщение в базу
-    print(f"{msg.sender}: {msg.content}")
-    return {"message": "Сообщение получено"}
+
 
 @app.post("/messages")
 def create_message(message: MessageCreate):
@@ -95,11 +99,33 @@ def create_message(message: MessageCreate):
             cur.execute("""
                 INSERT INTO messages (chat_id, sender_id, content) VALUES (%s, %s, %s) RETURNING id, chat_id, sender_id, content, timestamp
             """, (message.chat_id, message.sender_id, message.content))
+            
             result = cur.fetchone()
             conn.commit()
     return result
 
 
+
+@app.get("/messages/{chat_id}")
+def get_messages(chat_id: int):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    m.id, 
+                    m.chat_id, 
+                    u.username as sender,  # Используем правильный алиас
+                    m.content, 
+                    m.timestamp 
+                FROM messages m
+                JOIN users u ON m.sender_id = u.id
+                WHERE m.chat_id = %s 
+                ORDER BY m.timestamp ASC
+            """, (chat_id,))
+            return cur.fetchall()
+
+
+'''
 @app.get("/messages/{chat_id}")
 def get_messages(chat_id: int):
     with get_connection() as conn:
@@ -109,7 +135,7 @@ def get_messages(chat_id: int):
                 WHERE chat_id = %s ORDER BY timestamp ASC
             """, (chat_id,))
             return cur.fetchall()
-
+'''
 
 @app.get("/chats/{user_id}")
 def get_user_chats(user_id: int):

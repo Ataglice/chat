@@ -3,7 +3,7 @@ from tkinter import simpledialog, messagebox
 import requests
 from ui_chat_window import ChatWindow
 
-BASE_URL = "https://chat-0w96.onrender.com"  # или твой Render URL
+BASE_URL = "https://chat-0w96.onrender.com"  
 
 class ChatListWindow(tk.Tk):
     def __init__(self, user_id):

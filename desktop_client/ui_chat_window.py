@@ -3,7 +3,7 @@ from tkinter import messagebox
 import requests
 from tkinter import simpledialog
 
-BASE_URL = "https://chat-0w96.onrender.com"  # поменяй если сервер в другом месте
+BASE_URL = "https://chat-0w96.onrender.com"  
 
 class ChatWindow(tk.Toplevel):
     def __init__(self, chat_id, user_id):
@@ -12,7 +12,7 @@ class ChatWindow(tk.Toplevel):
         self.user_id = user_id
 
         self.title(f"Чат {chat_id}")
-        self.geometry("400x500")
+        self.geometry("600x500")
 
         self.messages_text = tk.Text(self, state=tk.DISABLED)
         self.messages_text.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
@@ -26,7 +26,8 @@ class ChatWindow(tk.Toplevel):
         self.add_user_button.pack(padx=10, pady=5)
 
         self.load_messages()
-
+        
+    '''
     def load_messages(self):
         try:
             response = requests.get(f"{BASE_URL}/messages/{self.chat_id}")
@@ -36,6 +37,24 @@ class ChatWindow(tk.Toplevel):
                 self.messages_text.delete(1.0, tk.END)
                 for msg in messages:
                     self.messages_text.insert(tk.END, f'[{msg["timestamp"]}] User {msg["sender_id"]}: {msg["content"]}\n')
+                self.messages_text.config(state=tk.DISABLED)
+            else:
+                messagebox.showerror("Ошибка", "Не удалось загрузить сообщения")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Сервер недоступен\n{e}")
+    '''
+
+    # ui_chat_window.py
+    def load_messages(self):
+        try:
+            response = requests.get(f"{BASE_URL}/messages/{self.chat_id}")
+            if response.status_code == 200:
+                messages = response.json()
+                self.messages_text.config(state=tk.NORMAL)
+                self.messages_text.delete(1.0, tk.END)
+                for msg in messages:
+                    # Изменено здесь: используем msg["sender"] вместо msg["sender_id"]
+                    self.messages_text.insert(tk.END, f'[{msg["timestamp"]}] {msg["sender"]}: {msg["content"]}\n')
                 self.messages_text.config(state=tk.DISABLED)
             else:
                 messagebox.showerror("Ошибка", "Не удалось загрузить сообщения")
@@ -75,5 +94,9 @@ class ChatWindow(tk.Toplevel):
                 messagebox.showerror("Ошибка", response.json().get("detail", "Не удалось добавить пользователя"))
         except Exception as e:
             messagebox.showerror("Ошибка", f"Сервер недоступен\n{e}")
+    
+    def auto_update_messages(self):
+        self.load_messages()
+        self.after(2000, self.auto_update_messages)
 
 
